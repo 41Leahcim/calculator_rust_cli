@@ -1,20 +1,8 @@
 #![warn(clippy::pedantic, clippy::nursery)]
 
-mod check;
 mod parse;
 
-use std::io::{self, Write};
-
-fn read_sum() -> Result<Vec<char>, io::Error> {
-    // ask the user for input
-    print!(">>> ");
-    io::stdout().flush()?;
-
-    // read input from the screen, and return the result as a vector of chars
-    let mut sum = String::new();
-    io::stdin().read_line(&mut sum)?;
-    Ok(sum.chars().filter(|&c| !c.is_whitespace()).collect())
-}
+use std::io;
 
 pub fn evaluate(operators: &mut Vec<char>, numbers: &mut Vec<f64>) -> f64 {
     // Iterate through the operators, evaluating the multiplicative ones
@@ -73,21 +61,13 @@ pub fn evaluate(operators: &mut Vec<char>, numbers: &mut Vec<f64>) -> f64 {
 }
 
 fn main() {
+    let mut sum = String::new();
     loop {
         // read sum
-        let sum = match read_sum() {
-            Ok(sum) => sum,
-            Err(error) => {
-                eprintln!("Failed to read sum: {error:?}");
-                break;
-            }
-        };
-
-        // check sum
-        if let Err(error) = check::sum(&sum) {
-            eprintln!("Invalid sum: {error:?}.");
-            continue;
-        }
+        eprint!(">>> ");
+        sum.clear();
+        io::stdin().read_line(&mut sum).unwrap();
+        sum = sum.chars().filter(|c| !c.is_whitespace()).collect();
 
         // parse sum, and evaluate sums between parentheses
         let (mut operators, mut numbers) = match parse::sum(&sum) {
