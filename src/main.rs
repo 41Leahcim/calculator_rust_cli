@@ -1,8 +1,33 @@
-#![warn(clippy::pedantic, clippy::nursery)]
+#![warn(
+    clippy::pedantic,
+    clippy::nursery,
+    clippy::unwrap_used,
+    clippy::expect_used
+)]
 
+mod chars;
 mod parse;
 
-use std::io;
+use std::io::{stdin, Read};
+
+use crate::chars::Chars;
+
+fn read_sum(sum: &mut String) {
+    eprint!(">>> ");
+    sum.clear();
+    let iter = Chars::new(
+        stdin()
+            .lock()
+            .bytes()
+            .take_while(Result::is_ok)
+            .map(Result::unwrap),
+    )
+    .take_while(|c| *c != '\n')
+    .filter(|c| !c.is_whitespace());
+    for c in iter {
+        sum.push(c);
+    }
+}
 
 pub fn evaluate(operators: &mut Vec<char>, numbers: &mut Vec<f64>) -> f64 {
     // Iterate through the operators, evaluating the multiplicative ones
@@ -64,10 +89,7 @@ fn main() {
     let mut sum = String::new();
     loop {
         // read sum
-        eprint!(">>> ");
-        sum.clear();
-        io::stdin().read_line(&mut sum).unwrap();
-        sum = sum.chars().filter(|c| !c.is_whitespace()).collect();
+        read_sum(&mut sum);
 
         // parse sum, and evaluate sums between parentheses
         let (mut operators, mut numbers) = match parse::sum(&sum) {

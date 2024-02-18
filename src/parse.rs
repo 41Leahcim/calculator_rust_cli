@@ -51,6 +51,7 @@ fn number(
     }
 
     // Take the part of the sum that contains the number and parse it to f64
+    #[allow(clippy::unwrap_used)]
     let number = if iter.peek().is_none() {
         &sum[start..]
     } else {
@@ -63,7 +64,7 @@ fn number(
 
 fn parentheses(sum: &str, iter: &mut impl Iterator<Item = (usize, char)>) -> Result<f64, Error> {
     // Store the start of this section of the sum
-    let start = iter.nth(1).unwrap().0;
+    let start = iter.nth(1).ok_or(Error::IndexOutOfBounds)?.0;
 
     // Find the closing parenthesis
     let mut depth: usize = 1;
