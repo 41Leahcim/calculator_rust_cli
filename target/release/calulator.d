@@ -1,1 +1,0 @@
-/home/michael/Documents/programming/rust/projects/cli/calculator/target/release/calulator: /home/michael/Documents/programming/rust/projects/cli/calculator/src/main.rs /home/michael/Documents/programming/rust/projects/cli/calculator/src/parse.rs
