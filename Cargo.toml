@@ -2,6 +2,15 @@
 name = "calulator"
 version = "0.1.0"
 edition = "2021"
+repository = "https://github.com/41Leahcim/calculator_rust_cli"
+authors = ["Michael Scholten"]
+description = "A simple CLI calculator"
+
+[package.metadata.wix]
+upgrade-guid = "A7D96093-D5C7-48E8-B1D5-F6CE95BF9C9B"
+path-guid = "98C2CFBA-F2FE-40F3-831F-8FA52A842BF8"
+license = false
+eula = false
 
 [profile.release]
 strip = true     # automatically strip symbols from the binary
@@ -10,4 +19,26 @@ lto = true        # enable link time optimization
 codegen-units = 1 # maximize size reduction optimizations
 panic = "abort"   # abort instead of unwinding the code on panic
 
+# The profile that 'cargo dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
+
 [dependencies]
+
+# Config for 'cargo dist'
+[workspace.metadata.dist]
+# The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
+cargo-dist-version = "0.10.0"
+# CI backends to support
+ci = ["github"]
+# The installers to generate for each app
+installers = ["shell", "powershell", "npm", "homebrew", "msi"]
+# Target platforms to build apps for (Rust target-triple syntax)
+targets = ["aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl", "x86_64-pc-windows-msvc"]
+# The archive format to use for windows builds (defaults .zip)
+windows-archive = ".tar.gz"
+# The archive format to use for non-windows builds (defaults .tar.xz)
+unix-archive = ".tar.gz"
+# Publish jobs to run in CI
+pr-run-mode = "upload"
