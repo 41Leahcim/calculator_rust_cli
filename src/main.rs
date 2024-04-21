@@ -1,107 +1,57 @@
-#![warn(
-    clippy::pedantic,
-    clippy::nursery,
-    clippy::unwrap_used,
-    clippy::expect_used
+#![warn(clippy::pedantic, clippy::nursery, clippy::restriction)]
+#![allow(
+    clippy::missing_docs_in_private_items,
+    clippy::blanket_clippy_restriction_lints,
+    clippy::implicit_return,
+    clippy::missing_trait_methods,
+    clippy::single_call_fn,
+    clippy::min_ident_chars,
+    clippy::default_numeric_fallback,
+    clippy::shadow_unrelated,
+    clippy::shadow_reuse,
+    clippy::indexing_slicing,
+    clippy::float_arithmetic,
+    clippy::arithmetic_side_effects,
+    clippy::print_stderr,
+    clippy::print_stdout,
+    clippy::self_named_module_files,
+    clippy::question_mark_used
 )]
 
+use std::io::{self, Read as _};
+
 mod chars;
-mod parse;
+mod evaluate;
+mod operator;
+mod parser;
+mod sum_error;
 
-use std::io::{stdin, Read};
+use chars::Chars;
+use evaluate::evaluate;
+use parser::parse;
 
-use crate::chars::Chars;
-
-fn read_sum(sum: &mut String) {
-    eprint!(">>> ");
-    sum.clear();
-    let iter = Chars::new(
-        stdin()
-            .lock()
-            .bytes()
-            .take_while(Result::is_ok)
-            .map(Result::unwrap),
-    )
-    .take_while(|c| *c != '\n')
-    .filter(|c| !c.is_whitespace());
-    for c in iter {
-        sum.push(c);
-    }
-}
-
-pub fn evaluate(operators: &mut Vec<char>, numbers: &mut Vec<f64>) -> f64 {
-    // Iterate through the operators, evaluating the multiplicative ones
-    let mut i = 0;
-    while let Some(operator) = operators.get(i) {
-        match operator {
-            '*' => {
-                // If the current operator is '*'
-                // Multiply the current number with the next
-                numbers[i] *= numbers[i + 1];
-
-                // Remove the operator and the next number
-                operators.remove(i);
-                numbers.remove(i + 1);
-            }
-            '/' => {
-                // If the current number is '/'
-                // Divide the current number by the next
-                numbers[i] /= numbers[i + 1];
-
-                // Remove the current operator and the next number
-                operators.remove(i);
-                numbers.remove(i + 1);
-            }
-            // Otherwise, continue to the next operator
-            _ => i += 1,
-        }
-    }
-
-    // Iterate through the additive operators
-    i = 0;
-    while let Some(operator) = operators.get(i) {
-        match operator {
-            // If it was an addition operator
-            '+' => {
-                // Add the next number to the current
-                numbers[i] += numbers[i + 1];
-
-                // Remove the current operator and the next number
-                operators.remove(i);
-                numbers.remove(i + 1);
-            }
-            '-' => {
-                // Subtract the next number from the current
-                numbers[i] -= numbers[i + 1];
-
-                // Remove the next operator and the next number
-                operators.remove(i);
-                numbers.remove(i + 1);
-            }
-            // Otherwise, continue to the next operator
-            _ => i += 1,
-        }
-    }
-    numbers[0]
-}
-
-fn main() {
-    let mut sum = String::new();
+fn main() -> ! {
     loop {
-        // read sum
-        read_sum(&mut sum);
+        // Read the sum
+        eprint!(">>> ");
+        let mut chars = Chars::from(io::stdin().lock().bytes().map_while(Result::ok))
+            .take_while(|&c| c != '\n')
+            .filter(|c| !c.is_whitespace());
 
-        // parse sum, and evaluate sums between parentheses
-        let (mut operators, mut numbers) = match parse::sum(&sum) {
+        // Parse the sum
+        #[allow(clippy::significant_drop_in_scrutinee)]
+        let (mut numbers, mut operators) = match parse(&mut chars) {
             Ok(result) => result,
-            Err(error) => {
-                eprintln!("Failed to parse sum: {error:?}");
+            Err(e) => {
+                eprintln!("{e}");
                 continue;
             }
         };
 
-        // evaluate the sum, and print the sum
-        let result = evaluate(&mut operators, &mut numbers);
-        eprintln!("{result}");
+        // Calculate the result
+        let result = evaluate(&mut numbers, &mut operators);
+
+        // Print the result
+        println!("{result}");
     }
 }
