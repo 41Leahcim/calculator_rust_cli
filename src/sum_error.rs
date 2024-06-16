@@ -1,15 +1,20 @@
 use core::fmt;
 use std::num::ParseFloatError;
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug)]
 pub enum SumError {
     InvalidOperator(char),
-    ParseFloatError(#[from] ParseFloatError),
+    ParseFloatError(ParseFloatError),
     MissingOpeningParenthesis,
     MissingClosingParenthesis,
     NotMoreOperatorsThanNumbers,
-    NumberTooLong,
     UnexpectedEndOfSum,
+}
+
+impl From<ParseFloatError> for SumError {
+    fn from(value: ParseFloatError) -> Self {
+        Self::ParseFloatError(value)
+    }
 }
 
 impl fmt::Display for SumError {
@@ -28,7 +33,6 @@ impl fmt::Display for SumError {
             Self::NotMoreOperatorsThanNumbers => {
                 writeln!(f, "There should be more numbers than operators")
             }
-            Self::NumberTooLong => writeln!(f, "Number too long"),
             Self::UnexpectedEndOfSum => writeln!(f, "Unexpected end of sum"),
         }
     }

@@ -1,5 +1,4 @@
 use core::iter::Peekable;
-use heapless::String;
 use itertools::Itertools;
 
 use crate::{evaluate::evaluate, operator::Operator, sum_error::SumError};
@@ -10,15 +9,12 @@ fn read_number<T: Iterator<Item = char>>(chars: &mut Peekable<T>) -> Result<f64,
     let c = chars.next().ok_or(SumError::UnexpectedEndOfSum)?;
 
     // Create a new string on the stack to save a heap allocation
-    let mut buffer = String::<64>::new();
-
-    // Add the first character to the string
-    buffer.push(c).map_err(|()| SumError::NumberTooLong)?;
-
-    // Read the rest of the sum
-    for ch in chars.peeking_take_while(|&c| c.is_ascii_digit() || c == '.') {
-        buffer.push(ch).map_err(|()| SumError::NumberTooLong)?;
-    }
+    let buffer = chars
+        .peeking_take_while(|&c| c.is_ascii_digit() || c == '.')
+        .fold(c.to_string(), |mut out, c| {
+            out.push(c);
+            out
+        });
 
     // Parse the number and return the result
     buffer.parse::<f64>().map_err(SumError::from)
