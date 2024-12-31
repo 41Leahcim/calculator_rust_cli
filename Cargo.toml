@@ -25,7 +25,7 @@ inherits = "release"
 lto = "thin"
 
 [dependencies]
-itertools = "0.13"
+itertools = "0.14"
 
 # Config for 'cargo dist'
 [workspace.metadata.dist]
